@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="zh-CN" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>提示词库 · 无限画布</title>
+<link rel="icon" href="/logo.svg">
+<style>
+:root{
+  --bg:#0b0d12; --bg2:#11141b; --card:#151a23; --card2:#1a202c;
+  --line:#232b3a; --txt:#e6e9f0; --sub:#8b95a7; --dim:#5b6575;
+  --acc:#7c6cf0; --acc2:#5a4fd4; --ok:#3ecf8e; --warn:#f0b060;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{color-scheme:dark}
+body{background:var(--bg);color:var(--txt);font:14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;min-height:100vh}
+a{color:var(--acc);text-decoration:none}
+header{position:sticky;top:0;z-index:10;background:rgba(11,13,18,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.hwrap{max-width:1280px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px}
+.logo img{width:28px;height:28px}
+.logo small{color:var(--sub);font-weight:400;font-size:12px}
+.spacer{flex:1}
+.back{color:var(--sub);font-size:13px;border:1px solid var(--line);padding:5px 12px;border-radius:8px;transition:.15s}
+.back:hover{color:var(--txt);border-color:var(--acc)}
+.hero{max-width:1280px;margin:0 auto;padding:26px 20px 8px}
+.hero h1{font-size:22px;font-weight:700}
+.hero p{color:var(--sub);margin-top:6px;max-width:760px}
+.hero .tip{margin-top:12px;background:linear-gradient(135deg,rgba(124,108,240,.12),rgba(124,108,240,.04));border:1px solid rgba(124,108,240,.3);border-radius:10px;padding:12px 14px;font-size:13px;color:#c9c2f5}
+.hero .tip code{background:rgba(124,108,240,.18);padding:2px 7px;border-radius:5px;font-size:12px;color:#d9d3ff;word-break:break-all}
+.toolbar{max-width:1280px;margin:0 auto;padding:14px 20px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.search{flex:1;min-width:220px;position:relative}
+.search input{width:100%;background:var(--bg2);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:9px 14px 9px 36px;font-size:14px;outline:none;transition:.15s}
+.search input:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(124,108,240,.15)}
+.search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);opacity:.45}
+.sel{background:var(--bg2);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:9px 12px;font-size:13px;outline:none;cursor:pointer;max-width:200px}
+.count{color:var(--dim);font-size:13px;white-space:nowrap}
+.grid{max-width:1280px;margin:0 auto;padding:6px 20px 40px;display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px;transition:.15s}
+.card:hover{border-color:rgba(124,108,240,.5);transform:translateY(-2px)}
+.card h3{font-size:15px;font-weight:600;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.meta{display:flex;gap:6px;flex-wrap:wrap}
+.src-tag{font-size:11px;color:var(--acc);background:rgba(124,108,240,.12);border:1px solid rgba(124,108,240,.25);padding:2px 8px;border-radius:20px}
+.tag{font-size:11px;color:var(--sub);background:var(--bg2);border:1px solid var(--line);padding:2px 8px;border-radius:20px}
+.desc{font-size:12.5px;color:var(--sub);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.prompt{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:12.5px;color:#b8c0d0;max-height:88px;overflow:hidden;white-space:pre-wrap;word-break:break-word;position:relative;transition:max-height .2s}
+.prompt.open{max-height:none}
+.prompt.clamped::after{content:"";position:absolute;left:0;right:0;bottom:0;height:28px;background:linear-gradient(transparent,var(--bg2))}
+.actions{display:flex;gap:8px;margin-top:auto}
+.btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;padding:8px 10px;border-radius:9px;border:1px solid var(--line);background:var(--bg2);color:var(--txt);cursor:pointer;transition:.15s;font-family:inherit}
+.btn:hover{border-color:var(--acc);color:#fff}
+.btn.primary{background:var(--acc2);border-color:var(--acc2)}
+.btn.primary:hover{background:var(--acc)}
+.btn.copied{background:var(--ok);border-color:var(--ok);color:#04241a}
+.pager{max-width:1280px;margin:0 auto;padding:0 20px 48px;display:flex;justify-content:center;align-items:center;gap:14px}
+.pager button{background:var(--bg2);border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:7px 16px;cursor:pointer;font-family:inherit;font-size:13px}
+.pager button:disabled{opacity:.35;cursor:default}
+.pager span{color:var(--dim);font-size:13px}
+.empty{text-align:center;padding:60px 20px;color:var(--dim)}
+.empty .big{font-size:40px;margin-bottom:10px}
+.loading{text-align:center;padding:80px 20px;color:var(--sub)}
+.loading .spin{width:28px;height:28px;border:3px solid var(--line);border-top-color:var(--acc);border-radius:50%;margin:0 auto 14px;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+footer{border-top:1px solid var(--line);padding:18px 20px;text-align:center;color:var(--dim);font-size:12px}
+@media(max-width:640px){.grid{grid-template-columns:1fr}.hero h1{font-size:18px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="hwrap">
+    <div class="logo"><img src="/logo.svg" alt=""><span>无限画布 <small>· 提示词库</small></span></div>
+    <div class="spacer"></div>
+    <a class="back" href="/">← 返回画布</a>
+  </div>
+</header>
+
+<div class="hero">
+  <h1>提示词库</h1>
+  <p>来自 GitHub 开源社区的高质量 AI 生图提示词，已部署到本服务器，无需访问 GitHub 即可稳定使用。</p>
+  <div class="tip">💡 想让「提示词中心」自动加载这些提示词？到画布 <b>设置 → 提示词来源 → 新增来源</b>，把下面任一 JSON 地址填进去即可：</div>
+  <div id="source-urls" style="margin-top:10px;display:flex;flex-direction:column;gap:8px"></div>
+</div>
+
+<div class="toolbar">
+  <div class="search">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    <input id="q" type="text" placeholder="搜索标题 / 提示词内容 / 标签…">
+  </div>
+  <select class="sel" id="src"></select>
+  <span class="count" id="count"></span>
+</div>
+
+<div class="loading" id="loading"><div class="spin"></div>正在加载提示词…</div>
+<div class="grid" id="grid" style="display:none"></div>
+<div class="empty" id="empty" style="display:none"><div class="big">🐱</div>没有匹配的提示词</div>
+<div class="pager" id="pager" style="display:none"></div>
+
+<footer>infinite-canvas 提示词库 · 数据来源：freestylefly / ZeroLu / ImgEdify / YouMind-OpenLab · 部署于 www.hyesky.com</footer>
+
+<script>
+const SOURCES = [
+  {id:"freestylefly-gpt-image-2", name:"Freestylefly GPT Image 2"},
+  {id:"awesome-gpt-image", name:"Awesome GPT Image"},
+  {id:"awesome-gpt4o-image-prompts", name:"Awesome GPT-4o"},
+  {id:"youmind-gpt-image-2", name:"YouMind GPT Image 2"},
+  {id:"youmind-nano-banana-pro", name:"YouMind Nano Banana Pro"}
+];
+const base = location.pathname.replace(/index\.html$/,"");
+const origin = location.origin;
+
+// 源 URL 列表（供用户复制进画布设置）
+const su = document.getElementById("source-urls");
+SOURCES.forEach(s=>{
+  const url = origin + base + "sources/" + s.id + ".json";
+  const row = document.createElement("div");
+  row.style.cssText = "display:flex;gap:8px;align-items:center;flex-wrap:wrap";
+  row.innerHTML = `<span style="font-size:12.5px;white-space:nowrap">${s.name}</span>
+    <code style="font-size:12px;background:rgba(124,108,240,.14);padding:3px 8px;border-radius:6px;word-break:break-all;flex:1">${url}</code>`;
+  const b = document.createElement("button");
+  b.className = "btn"; b.style.cssText = "flex:0 0 auto;padding:6px 12px;font-size:12px";
+  b.textContent = "复制地址";
+  b.onclick = async ()=>{ await navigator.clipboard.writeText(url); b.textContent="已复制 ✓"; b.classList.add("copied"); setTimeout(()=>{b.textContent="复制地址";b.classList.remove("copied")},1500); };
+  row.appendChild(b); su.appendChild(row);
+});
+
+let ALL = [];
+const q = document.getElementById("q"), srcSel = document.getElementById("src");
+const grid = document.getElementById("grid"), pager = document.getElementById("pager");
+const countEl = document.getElementById("count"), emptyEl = document.getElementById("empty"), loadingEl = document.getElementById("loading");
+const PS = 24;
+let page = 0, filtered = [];
+
+srcSel.innerHTML = '<option value="">全部来源 (' + SOURCES.length + ')</option>' +
+  SOURCES.map(s=>`<option value="${s.id}">${s.name}</option>`).join("");
+
+function esc(s){ return (s||"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+function applyFilter(){
+  const kw = q.value.trim().toLowerCase();
+  const src = srcSel.value;
+  filtered = ALL.filter(it=>{
+    if (src && it.sourceId !== src) return false;
+    if (kw){
+      const hay = (it.title+" "+it.prompt+" "+(it.description||"")+" "+(it.tags||[]).join(" ")).toLowerCase();
+      if (!hay.includes(kw)) return false;
+    }
+    return true;
+  });
+  page = 0;
+  render();
+}
+
+function render(){
+  countEl.textContent = "共 " + filtered.length + " 条";
+  const pages = Math.max(1, Math.ceil(filtered.length / PS));
+  if (page >= pages) page = pages - 1;
+  const items = filtered.slice(page*PS, (page+1)*PS);
+  grid.innerHTML = items.map((it,i)=>{
+    const tags = (it.tags||[]).slice(0,4).map(t=>`<span class="tag">${esc(t)}</span>`).join("");
+    const srcName = SOURCES.find(s=>s.id===it.sourceId)?.name || it.sourceId;
+    return `<div class="card" data-i="${i}">
+      <h3>${esc(it.title||"(无标题)")}</h3>
+      <div class="meta"><span class="src-tag">${esc(srcName)}</span>${tags}</div>
+      ${it.description?`<div class="desc">${esc(it.description)}</div>`:""}
+      <div class="prompt clamped">${esc(it.prompt)}</div>
+      <div class="actions">
+        <button class="btn expand">展开</button>
+        <button class="btn primary copy">复制提示词</button>
+      </div>
+    </div>`;
+  }).join("");
+  grid.style.display = filtered.length ? "grid" : "none";
+  emptyEl.style.display = filtered.length ? "none" : "block";
+  pager.style.display = pages > 1 ? "flex" : "none";
+  if (pages > 1){
+    pager.innerHTML = `<button id="pp" ${page===0?"disabled":""}>‹ 上一页</button><span>${page+1} / ${pages}</span><button id="pn" ${page>=pages-1?"disabled":""}>下一页 ›</button>`;
+    document.getElementById("pp").onclick = ()=>{ page--; render(); window.scrollTo({top:0,behavior:"smooth"}); };
+    document.getElementById("pn").onclick = ()=>{ page++; render(); window.scrollTo({top:0,behavior:"smooth"}); };
+  }
+}
+
+grid.addEventListener("click", async e=>{
+  const card = e.target.closest(".card"); if (!card) return;
+  const i = +card.dataset.i, item = filtered[i];
+  if (e.target.classList.contains("copy")){
+    try { await navigator.clipboard.writeText(item.prompt); }
+    catch(_){ const t=document.createElement("textarea");t.value=item.prompt;document.body.appendChild(t);t.select();document.execCommand("copy");t.remove(); }
+    const b = e.target; b.textContent="已复制 ✓"; b.classList.add("copied");
+    setTimeout(()=>{b.textContent="复制提示词";b.classList.remove("copied")},1500);
+  }
+  if (e.target.classList.contains("expand")){
+    const p = card.querySelector(".prompt"), b = e.target;
+    p.classList.toggle("open"); p.classList.toggle("clamped", !p.classList.contains("open"));
+    b.textContent = p.classList.contains("open") ? "收起" : "展开";
+  }
+});
+
+let deb;
+q.addEventListener("input", ()=>{ clearTimeout(deb); deb = setTimeout(applyFilter, 200); });
+srcSel.addEventListener("change", applyFilter);
+
+(async function init(){
+  const results = await Promise.allSettled(SOURCES.map(async s=>{
+    const r = await fetch(base + "sources/" + s.id + ".json", {cache:"no-store"});
+    if (!r.ok) throw new Error(s.id + " HTTP " + r.status);
+    const arr = await r.json();
+    return Array.isArray(arr) ? arr : (arr.items || []);
+  }));
+  let ok = 0, fail = 0;
+  results.forEach((r,i)=>{
+    if (r.status === "fulfilled" && r.value.length){ ALL.push(...r.value.map(it=>({
+      ...it, sourceId: it.sourceId || SOURCES[i].id
+    }))); ok++; } else fail++;
+  });
+  loadingEl.style.display = "none";
+  if (fail === SOURCES.length){
+    loadingEl.style.display = "block";
+    loadingEl.innerHTML = "<div class='big'>⚠️</div>提示词加载失败，请刷新重试";
+    return;
+  }
+  applyFilter();
+})();
+</script>
+</body>
+</html>
