@@ -20,5 +20,21 @@
     <body class="bg-background text-foreground antialiased">
         <div id="root"></div>
         <script src="/config.js"></script>
+        <script>
+            // 去除导航上的文档链接与版本号按钮（创易画吧品牌本地化）
+            (function () {
+                function stripAppNav() {
+                    var doc = document.querySelector('a[href="https://docs.canvas.best"]');
+                    if (doc) doc.remove();
+                    var gh = document.querySelector('a[href="https://github.com/basketikun/infinite-canvas"]');
+                    if (gh) gh.remove();
+                    var version = Array.prototype.slice.call(document.querySelectorAll('button')).find(function (b) {
+                        return (b.textContent || '').trim() === 'v0.20.0';
+                    });
+                    if (version) version.remove();
+                }
+                setInterval(stripAppNav, 300);
+            })();
+        </script>
     </body>
 </html>
